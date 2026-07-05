@@ -1,0 +1,19 @@
+GITHUB UPLOAD STEPS
+
+1. Create a new GitHub repository.
+
+2. Upload the contents of this ZIP directly into the repo root.
+
+The repo should show these folders at the top level:
+
+public
+netlify
+supabase
+
+It should NOT show an extra folder called eve-liquidity-machine above them.
+
+3. Commit the files.
+
+4. Connect the repo to a new Netlify site.
+
+5. Use the deploy checklist.

@@ -1,0 +1,20 @@
+{
+  "name": "eve-liquidity-machine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "EVE Liquidity - Zone-Aware Liquidity Engine using Twelve Data, Netlify Functions and Supabase.",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static frontend build complete'"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@netlify/functions": "^3.1.10",
+    "@supabase/supabase-js": "^2.45.4"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.38.1"
+  }
+}

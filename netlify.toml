@@ -1,0 +1,37 @@
+[build]
+  publish = "public"
+  command = "npm run build"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[dev]
+  publish = "public"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[redirects]]
+  from = "/api/latest"
+  to = "/.netlify/functions/latest-results"
+  status = 200
+
+[[redirects]]
+  from = "/api/toggle"
+  to = "/.netlify/functions/toggle-scanner"
+  status = 200
+
+[[redirects]]
+  from = "/api/manual-scan"
+  to = "/.netlify/functions/manual-scan"
+  status = 200
+
+[[redirects]]
+  from = "/api/price-alarms"
+  to = "/.netlify/functions/price-alarms"
+  status = 200

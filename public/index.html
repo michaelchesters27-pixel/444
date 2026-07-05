@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EVE Liquidity - Zone-Aware Liquidity Engine</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Zone-Aware Liquidity Engine</div>
+        <h1>EVE</h1>
+        <p class="subline">Meaningful liquidity around the supply and demand zones you trade from</p>
+      </div>
+      <div class="status-panel">
+        <div class="status-row"><span>Liquidity Scanner</span><strong id="scannerState">Loading</strong></div>
+        <div class="status-row"><span>Mode</span><strong id="marketMode">Checking</strong></div>
+        <div class="status-row"><span>UK Time</span><strong id="ukClock">--:--</strong></div>
+        <div class="status-row"><span>Next Scan</span><strong id="nextScan">--:--</strong></div>
+      </div>
+    </header>
+
+    <section class="hero-grid">
+      <div class="eve-core-card">
+        <div class="core-orbit">
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+          <div class="scan-line"></div>
+          <div class="core-dot">
+            <span>EVE</span>
+            <small id="coreStatus">SCANNING</small>
+          </div>
+        </div>
+        <div class="core-copy">
+          <p id="lastScan">Last scan: waiting for first result</p>
+          <p id="openCount">Markets open: --</p>
+        </div>
+      </div>
+
+      <div class="top-pick-card" id="topPickCard">
+        <div class="card-head">
+          <span>EVE'S CLEANEST LIQUIDITY</span>
+          <button id="refreshBtn" class="ghost-btn">Refresh</button>
+        </div>
+        <div id="topPickEmpty" class="empty-state">Waiting for liquidity scan...</div>
+        <div id="topPickContent" class="hidden">
+          <div class="top-symbol" id="topSymbol">--</div>
+          <div class="bias-pill bias-mixed" id="topLevelType">--</div>
+          <div class="score-wrap">
+            <div class="score-number"><span id="topScore">0</span><small>%</small></div>
+            <div class="score-label">Liquidity Quality</div>
+          </div>
+          <p class="reason" id="topReason">--</p>
+        </div>
+      </div>
+
+      <aside class="controls-card">
+        <div class="card-head"><span>Admin Control</span></div>
+        <button id="toggleBtn" class="control-btn">Turn Scanner Off</button>
+        <button id="manualScanBtn" class="control-btn secondary">Scan Now</button>
+        <button id="soundBtn" class="control-btn secondary">Enable Alarm Sound</button>
+        <button id="passwordBtn" class="text-btn">Set / Change Admin Password</button>
+      </aside>
+    </section>
+
+    <section class="leader-row">
+      <article class="leader-card" id="leaderDemandSweep"><span>Best Demand Sweep</span><strong>--</strong><small>Waiting</small></article>
+      <article class="leader-card" id="leaderDemandTarget"><span>Best Demand Target</span><strong>--</strong><small>Waiting</small></article>
+      <article class="leader-card" id="leaderSupplySweep"><span>Best Supply Sweep</span><strong>--</strong><small>Waiting</small></article>
+      <article class="leader-card" id="leaderSupplyTarget"><span>Best Supply Target</span><strong>--</strong><small>Waiting</small></article>
+    </section>
+
+    <section class="market-stage">
+      <div class="section-title">
+        <h2>Zone-Aware Liquidity Board</h2>
+      </div>
+      <div class="market-grid" id="marketGrid"></div>
+    </section>
+
+    <section class="alarm-section">
+      <div class="section-title">
+        <h2>Price Alarms</h2>
+        <button id="ackAllBtn" class="ghost-btn">Acknowledge All</button>
+      </div>
+      <div class="alarm-list" id="alarmList"></div>
+    </section>
+
+    <section class="table-section">
+      <div class="section-title">
+        <h2>Full Liquidity Table</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Market</th>
+              <th>Demand Sweep</th>
+              <th>Demand Target</th>
+              <th>Supply Sweep</th>
+              <th>Supply Target</th>
+              <th>Latest</th>
+              <th>Quality</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="rankingBody"><tr><td colspan="9">Loading EVE Liquidity...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div id="alarmBanner" class="alarm-banner hidden">
+    <div><strong id="alarmTitle">PRICE ALARM</strong><span id="alarmText">--</span></div>
+    <button id="ackBannerBtn" class="ghost-btn">Acknowledge</button>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

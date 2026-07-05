@@ -1,0 +1,42 @@
+EVE LIQUIDITY DEPLOY CHECKLIST
+
+1. Upload this flat project to a NEW GitHub repo.
+
+2. Create a NEW Netlify site from that GitHub repo.
+
+3. Netlify build settings:
+
+Base directory: /
+Package directory: leave blank / Not set
+Build command: npm run build
+Publish directory: public
+Functions directory: netlify/functions
+
+4. Add Netlify environment variables:
+
+TWELVEDATA_API_KEY
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+EVE_ADMIN_PASSWORD
+
+5. In the SAME Supabase project as your other EVE scanners, run:
+
+supabase/eve-liquidity-schema.sql
+
+6. Deploy the site.
+
+7. Open EVE Liquidity.
+
+8. Click Set / Change Admin Password.
+
+9. Enter the same password as EVE_ADMIN_PASSWORD.
+
+10. Press Scan Now.
+
+Expected first result:
+- If EVE Zones has run already, EVE Liquidity will use those zones.
+- If EVE Zones has no results yet, EVE Liquidity will say it is waiting for EVE Zones / no valid zone.
+
+IMPORTANT:
+This scanner is staggered at 03, 08, 13, 18... minutes.
+It uses Twelve Data REST, not WebSocket.
