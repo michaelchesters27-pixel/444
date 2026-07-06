@@ -1,0 +1,12 @@
+EVE Liquidity v2 - 9 assets + scheduled scan lock
+
+Changes:
+- Keeps only 9 assets: EUR/USD, GBP/USD, AUD/USD, USD/JPY, USD/CAD, EUR/JPY, GBP/JPY, XAU/USD, BTC/USD.
+- Removes XAG/USD / Silver from live scanning.
+- Removes ETH/USD from live scanning.
+- Removes SOL/USD from live scanning.
+- Keeps the scheduled scan lock: duplicate scheduled runs inside 4 minutes return mode skipped_recent_run and make no Twelve Data calls.
+
+Recommended Supabase patch:
+Run supabase/v2-asset-reduction-patch.sql once to disable old assets in the eve_liquidity_markets table.
+The code also has a safety filter, so it will not call Twelve Data for XAG/USD, ETH/USD or SOL/USD even if old rows remain enabled.

@@ -125,18 +125,15 @@ on conflict (key) do update set value = excluded.value, updated_at = now(), chan
 
 insert into public.eve_liquidity_markets (symbol, display_name, asset_class, enabled, scan_priority)
 values
-  ('XAU/USD', 'Gold', 'metal', true, 1),
-  ('XAG/USD', 'Silver', 'metal', true, 2),
-  ('EUR/USD', 'Euro / Dollar', 'forex', true, 3),
-  ('GBP/USD', 'Pound / Dollar', 'forex', true, 4),
-  ('USD/JPY', 'Dollar / Yen', 'forex', true, 5),
-  ('AUD/USD', 'Aussie / Dollar', 'forex', true, 6),
-  ('USD/CAD', 'Dollar / Cad', 'forex', true, 7),
-  ('EUR/JPY', 'Euro / Yen', 'forex', true, 8),
-  ('GBP/JPY', 'Pound / Yen', 'forex', true, 9),
-  ('BTC/USD', 'Bitcoin', 'crypto', true, 10),
-  ('ETH/USD', 'Ethereum', 'crypto', true, 11),
-  ('SOL/USD', 'Solana', 'crypto', true, 12)
+  ('EUR/USD', 'Euro / Dollar', 'forex', true, 1),
+  ('GBP/USD', 'Pound / Dollar', 'forex', true, 2),
+  ('AUD/USD', 'Aussie / Dollar', 'forex', true, 3),
+  ('USD/JPY', 'Dollar / Yen', 'forex', true, 4),
+  ('USD/CAD', 'Dollar / Cad', 'forex', true, 5),
+  ('EUR/JPY', 'Euro / Yen', 'forex', true, 6),
+  ('GBP/JPY', 'Pound / Yen', 'forex', true, 7),
+  ('XAU/USD', 'Gold', 'metal', true, 8),
+  ('BTC/USD', 'Bitcoin', 'crypto', true, 9)
 on conflict (symbol) do update set
   display_name = excluded.display_name,
   asset_class = excluded.asset_class,

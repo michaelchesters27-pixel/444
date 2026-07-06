@@ -76,7 +76,7 @@ function render(data) {
   $("marketMode").textContent = modeLabel(run?.mode);
   $("nextScan").textContent = fmtTime(data.next_scan_at);
   $("lastScan").textContent = `Last scan: ${fmtDateTime(run?.completed_at || run?.started_at)}`;
-  $("openCount").textContent = `Markets open: ${run?.markets_open ?? 0} / ${run?.markets_requested ?? 12}`;
+  $("openCount").textContent = `Markets open: ${run?.markets_open ?? 0} / ${run?.markets_requested ?? 9}`;
   $("coreStatus").textContent = scannerEnabled ? "SCANNING" : "PAUSED";
   $("toggleBtn").textContent = scannerEnabled ? "Turn Scanner Off" : "Turn Scanner On";
   $("soundBtn").textContent = state.alarmSoundEnabled ? "Alarm Sound Enabled" : "Enable Alarm Sound";

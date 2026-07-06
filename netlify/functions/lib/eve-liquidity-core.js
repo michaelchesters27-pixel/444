@@ -1,19 +1,18 @@
 const { getSupabase } = require("./supabase");
 
 const DEFAULT_MARKETS = [
-  { symbol: "XAU/USD", display_name: "Gold", asset_class: "metal", enabled: true, scan_priority: 1 },
-  { symbol: "XAG/USD", display_name: "Silver", asset_class: "metal", enabled: true, scan_priority: 2 },
-  { symbol: "EUR/USD", display_name: "Euro / Dollar", asset_class: "forex", enabled: true, scan_priority: 3 },
-  { symbol: "GBP/USD", display_name: "Pound / Dollar", asset_class: "forex", enabled: true, scan_priority: 4 },
-  { symbol: "USD/JPY", display_name: "Dollar / Yen", asset_class: "forex", enabled: true, scan_priority: 5 },
-  { symbol: "AUD/USD", display_name: "Aussie / Dollar", asset_class: "forex", enabled: true, scan_priority: 6 },
-  { symbol: "USD/CAD", display_name: "Dollar / Cad", asset_class: "forex", enabled: true, scan_priority: 7 },
-  { symbol: "EUR/JPY", display_name: "Euro / Yen", asset_class: "forex", enabled: true, scan_priority: 8 },
-  { symbol: "GBP/JPY", display_name: "Pound / Yen", asset_class: "forex", enabled: true, scan_priority: 9 },
-  { symbol: "BTC/USD", display_name: "Bitcoin", asset_class: "crypto", enabled: true, scan_priority: 10 },
-  { symbol: "ETH/USD", display_name: "Ethereum", asset_class: "crypto", enabled: true, scan_priority: 11 },
-  { symbol: "SOL/USD", display_name: "Solana", asset_class: "crypto", enabled: true, scan_priority: 12 }
+  { symbol: "EUR/USD", display_name: "Euro / Dollar", asset_class: "forex", enabled: true, scan_priority: 1 },
+  { symbol: "GBP/USD", display_name: "Pound / Dollar", asset_class: "forex", enabled: true, scan_priority: 2 },
+  { symbol: "AUD/USD", display_name: "Aussie / Dollar", asset_class: "forex", enabled: true, scan_priority: 3 },
+  { symbol: "USD/JPY", display_name: "Dollar / Yen", asset_class: "forex", enabled: true, scan_priority: 4 },
+  { symbol: "USD/CAD", display_name: "Dollar / Cad", asset_class: "forex", enabled: true, scan_priority: 5 },
+  { symbol: "EUR/JPY", display_name: "Euro / Yen", asset_class: "forex", enabled: true, scan_priority: 6 },
+  { symbol: "GBP/JPY", display_name: "Pound / Yen", asset_class: "forex", enabled: true, scan_priority: 7 },
+  { symbol: "XAU/USD", display_name: "Gold", asset_class: "metal", enabled: true, scan_priority: 8 },
+  { symbol: "BTC/USD", display_name: "Bitcoin", asset_class: "crypto", enabled: true, scan_priority: 9 }
 ];
+
+const ALLOWED_SCAN_SYMBOLS = new Set(DEFAULT_MARKETS.map((m) => m.symbol));
 
 const INTERVALS = [
   { key: "h1", td: "1h", outputsize: 260 },
@@ -426,7 +425,12 @@ async function setScannerEnabled(enabled, changedBy = "admin") {
 async function loadMarkets(sb) {
   const { data, error } = await sb.from("eve_liquidity_markets").select("symbol,display_name,asset_class,enabled,scan_priority").eq("enabled", true).order("scan_priority", { ascending: true });
   if (error) throw error;
-  return data && data.length ? data : DEFAULT_MARKETS;
+  if (!data || !data.length) return DEFAULT_MARKETS;
+
+  // Safety filter: even if old rows remain enabled in Supabase,
+  // this scanner only burns Twelve Data calls on the approved reduced list.
+  const filtered = data.filter((m) => ALLOWED_SCAN_SYMBOLS.has(m.symbol));
+  return filtered.length ? filtered : DEFAULT_MARKETS;
 }
 
 async function loadLatestZonesMap(sb) {
@@ -447,6 +451,61 @@ function isManualUnsafeMoment(now = new Date()) {
   const mod = now.getUTCMinutes() % 5;
   // Bias 00, Structure 01, Zones 02. Liquidity owns 03.
   return mod === 0 || mod === 1 || mod === 2;
+}
+
+
+const SCHEDULED_SCAN_LOCK_MINUTES = Number(process.env.SCHEDULED_SCAN_LOCK_MINUTES || 4);
+
+async function skipIfRecentScheduledRun(sb, tableName, currentRunId, startedAt, source, force) {
+  if (source !== "scheduled" || force) return null;
+
+  const lockMinutes = Number.isFinite(SCHEDULED_SCAN_LOCK_MINUTES) && SCHEDULED_SCAN_LOCK_MINUTES > 0
+    ? SCHEDULED_SCAN_LOCK_MINUTES
+    : 4;
+  const cutoffIso = new Date(startedAt.getTime() - lockMinutes * 60 * 1000).toISOString();
+  const startedIso = startedAt.toISOString();
+
+  const { data: recentRun, error } = await sb
+    .from(tableName)
+    .select("id,started_at,completed_at,mode,source")
+    .neq("id", currentRunId)
+    .eq("source", "scheduled")
+    .gte("started_at", cutoffIso)
+    .lt("started_at", startedIso)
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!recentRun) return null;
+
+  const completedAt = new Date();
+  const notes = `Scheduled scan skipped: another scheduled run already started at ${recentRun.started_at} within the last ${lockMinutes} minutes. No Twelve Data calls made.`;
+
+  const { error: updateError } = await sb.from(tableName).update({
+    completed_at: completedAt.toISOString(),
+    mode: "skipped_recent_run",
+    markets_requested: 0,
+    markets_scanned: 0,
+    markets_open: 0,
+    errors: [],
+    notes
+  }).eq("id", currentRunId);
+  if (updateError) throw updateError;
+
+  return {
+    ok: true,
+    skipped: true,
+    scan_id: currentRunId,
+    mode: "skipped_recent_run",
+    reason: "recent_scheduled_run",
+    recent_scan_id: recentRun.id,
+    recent_started_at: recentRun.started_at,
+    lock_minutes: lockMinutes,
+    message: notes,
+    started_at: startedIso,
+    completed_at: completedAt.toISOString()
+  };
 }
 
 async function runScan({ source = "scheduled", force = false } = {}) {
@@ -471,6 +530,9 @@ async function runScan({ source = "scheduled", force = false } = {}) {
   }).select("id").single();
   if (runInsert.error) throw runInsert.error;
   const runId = runInsert.data.id;
+
+  const recentRunSkip = await skipIfRecentScheduledRun(sb, "eve_liquidity_scan_runs", runId, startedAt, source, force);
+  if (recentRunSkip) return recentRunSkip;
 
   if (!scannerEnabled && !force) {
     await sb.from("eve_liquidity_scan_runs").update({ completed_at: new Date().toISOString(), mode: "liquidity_scanner_off", notes: "Liquidity scanner is OFF. No Twelve Data calls made." }).eq("id", runId);

@@ -1,0 +1,8 @@
+EVE Liquidity scan-lock patch
+
+Purpose:
+- Stops duplicate scheduled Netlify runs from burning Twelve Data REST credits.
+- If a scheduled scan already started within the last 4 minutes, the new scheduled run records mode = skipped_recent_run and makes zero Twelve Data calls.
+- Manual admin scans still behave as before.
+
+No Supabase SQL change is required. Existing scan_runs columns are used.
