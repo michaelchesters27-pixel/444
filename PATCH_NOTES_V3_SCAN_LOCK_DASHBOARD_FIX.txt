@@ -1,0 +1,10 @@
+EVE Liquidity v3 — 9 assets + scan-lock dashboard fix
+
+What changed:
+- Keeps the 9-asset reduced list.
+- Keeps scheduled scan-lock protection.
+- skipped_recent_run is still recorded in scan history, but no longer replaces the visible dashboard result.
+- A skipped_recent_run can no longer block the next proper scheduled scan.
+
+Upload this version to the EVE Liquidity Netlify/GitHub project only.
+No Supabase SQL changes are required if the v2 9-asset patch was already run.

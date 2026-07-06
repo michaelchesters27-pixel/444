@@ -470,6 +470,7 @@ async function skipIfRecentScheduledRun(sb, tableName, currentRunId, startedAt, 
     .select("id,started_at,completed_at,mode,source")
     .neq("id", currentRunId)
     .eq("source", "scheduled")
+    .neq("mode", "skipped_recent_run")
     .gte("started_at", cutoffIso)
     .lt("started_at", startedIso)
     .order("started_at", { ascending: false })
@@ -665,7 +666,15 @@ function nextStaggeredScanIso(from = new Date()) {
 async function getLatestResults() {
   const sb = getSupabase();
   const settings = await loadSettings(sb);
-  const { data: run, error: runError } = await sb.from("eve_liquidity_scan_runs").select("id,started_at,completed_at,mode,scanner_enabled,markets_requested,markets_scanned,markets_open,top_symbol,top_level_key,source,notes,errors").order("started_at", { ascending: false }).limit(1).maybeSingle();
+  // Show the latest real scan on the dashboard. Duplicate scheduled runs are recorded
+  // in eve_liquidity_scan_runs as skipped_recent_run, but they must not wipe the visible result.
+  const { data: run, error: runError } = await sb
+    .from("eve_liquidity_scan_runs")
+    .select("id,started_at,completed_at,mode,scanner_enabled,markets_requested,markets_scanned,markets_open,top_symbol,top_level_key,source,notes,errors")
+    .neq("mode", "skipped_recent_run")
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
   if (runError) throw runError;
   let rows = [];
   if (run?.id) {
