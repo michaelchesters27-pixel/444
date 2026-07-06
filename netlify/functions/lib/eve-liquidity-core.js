@@ -434,8 +434,17 @@ async function loadMarkets(sb) {
 }
 
 async function loadLatestZonesMap(sb) {
-  // EVE Liquidity is zone-aware. It uses the latest EVE Zones results if present.
-  const { data: latestRun, error: runError } = await sb.from("eve_zones_scan_runs").select("id,completed_at,started_at").order("started_at", { ascending: false }).limit(1).maybeSingle();
+  // EVE Liquidity is zone-aware. It must use the latest real completed EVE Zones scan.
+  // Duplicate Netlify triggers are recorded as skipped_recent_run; those must not be used
+  // as the zone context for Liquidity because they do not create fresh zone rows.
+  const { data: latestRun, error: runError } = await sb
+    .from("eve_zones_scan_runs")
+    .select("id,completed_at,started_at,mode")
+    .not("completed_at", "is", null)
+    .neq("mode", "skipped_recent_run")
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
   if (runError) {
     // If EVE Zones tables are not installed yet, return empty instead of killing the Liquidity scanner.
     if (String(runError.message || "").toLowerCase().includes("eve_zones")) return new Map();

@@ -1,0 +1,10 @@
+EVE Liquidity v4 Backbone Audit Fix
+
+Changes:
+- Keeps 9-asset reduced list.
+- Keeps scan-lock and dashboard fix.
+- Liquidity now loads the latest real completed Zones scan only.
+- It ignores eve_zones_scan_runs rows where mode = skipped_recent_run.
+- This prevents a duplicate skipped Zones run from becoming Liquidity's zone context.
+
+No Supabase SQL required.
